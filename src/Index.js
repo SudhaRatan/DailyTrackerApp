@@ -1,20 +1,73 @@
-import { View, Text } from "react-native";
-import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
-import { useMainStore } from "./stores/mainStore";
 import Login from "./screens/Login";
 import Main from "./screens/Main";
+import { useAuthStore } from "./stores/authStore";
+import { Image, Pressable, Text, View } from "react-native";
+import axios from "axios";
+import { API_URL } from "./config";
+import AddEfforts from "./screens/AddEfforts";
 
 const Stack = createStackNavigator();
 
 const Index = () => {
-    const token = useMainStore((state) => state.token);
+  const loggedIn = useAuthStore((state) => state.loggedIn);
+
+  const logoutClient = useAuthStore((state) => state.logout);
+
+  const logout = async () => {
+    try {
+      await axios.get(`${API_URL}/api/AuthApi/Logout`);
+      logoutClient();
+    } catch (error) {
+      console.log(error);
+    }
+  };
   return (
     <Stack.Navigator>
-      {token === null ? (
-        <Stack.Screen component={Login} name="login" />
+      {!loggedIn ? (
+        <Stack.Screen
+          component={Login}
+          name="login"
+          options={{
+            headerStyle: {
+              elevation: 10,
+            },
+            headerTitle: "Login to daily tracker",
+            headerTitleAlign: "center",
+          }}
+        />
       ) : (
-        <Stack.Screen component={Main} name="main" />
+        <>
+          <Stack.Screen
+            options={{
+              headerTitle: "Efforts",
+              headerTitleAlign: "center",
+              headerLeft: () => (
+                <View className="justify-center">
+                  <Image
+                    source={require("../assets/logo.png")}
+                    resizeMode="contain"
+                    className="h-[80%]"
+                  />
+                </View>
+              ),
+              headerRight: () => (
+                <Pressable
+                  className="p-2 mr-2"
+                  android_ripple={{ borderless: false }}
+                  onPress={logout}
+                >
+                  <Text className="text-accent font-semibold">Logout</Text>
+                </Pressable>
+              ),
+            }}
+            component={Main}
+            name="main"
+          />
+          <Stack.Screen options={{
+            presentation:"modal"
+          }} name="AddEffort" component={AddEfforts} />
+        </>
       )}
     </Stack.Navigator>
   );
