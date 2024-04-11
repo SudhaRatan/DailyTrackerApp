@@ -23,7 +23,7 @@ const Index = () => {
     }
   };
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{}}>
       {!loggedIn ? (
         <Stack.Screen
           component={Login}
@@ -64,9 +64,13 @@ const Index = () => {
             component={Main}
             name="main"
           />
-          <Stack.Screen options={{
-            presentation:"modal"
-          }} name="AddEffort" component={AddEfforts} />
+          <Stack.Screen
+            options={{
+              presentation: "modal",
+            }}
+            name="AddEffort"
+            component={AddEfforts}
+          />
         </>
       )}
     </Stack.Navigator>

@@ -12,13 +12,12 @@ import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { API_URL } from "../config";
 import { useAuthStore } from "../stores/authStore";
-import resolveConfig from "tailwindcss/resolveConfig";
-import tailwindConfig from "../../tailwind.config";
 import { RefreshControl } from "react-native-gesture-handler";
 import BottomSheet from "../components/BottomSheet";
 import { Feather, MaterialIcons, FontAwesome } from "@expo/vector-icons";
 import { FlatList as FL } from "react-native-gesture-handler";
 import { AntDesign } from "@expo/vector-icons";
+import { theme } from "../services/theme";
 
 import Animated, {
   interpolate,
@@ -36,7 +35,7 @@ const Main = ({navigation}) => {
   const logout = useAuthStore((state) => state.logout);
   const employeeId = useAuthStore((state) => state.employeeId);
 
-  const { theme } = resolveConfig(tailwindConfig);
+
 
   const [efforts, setEfforts] = useState([]);
   const [effort, setEffort] = useState({});

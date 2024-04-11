@@ -1,4 +1,5 @@
 import { View, ActivityIndicator, Pressable, Text } from "react-native";
+import { theme } from "../services/theme";
 
 const Button = ({
   title,
@@ -7,16 +8,25 @@ const Button = ({
   iconColor,
   iconsize,
   color,
+  textColor,
   border,
   disabled,
-  style
+  style,
 }) => {
   return (
     <View
-      className={`rounded-sm ${!disabled && color ? color : "bg-accent"} ${
-        border && "border"
-      } ${border ? border : "border-accent"}`}
-      style={[{ elevation: 4 },style]}
+      className={`rounded-sm ${
+        border ? "border-[" + border + "]" : "border-accent"
+      }`}
+      style={[
+        {
+          elevation: 4,
+          backgroundColor: color ? color : theme.colors.accent,
+          borderWidth: border ? 1 : 0,
+          borderColor: border && border
+        },
+        style,
+      ]}
     >
       {loading ? (
         <ActivityIndicator
@@ -30,7 +40,12 @@ const Button = ({
           className="px-5 py-2 items-center rounded-sm "
           onPress={onPress}
         >
-          <Text className="text-primary-dark font-semibold">{title}</Text>
+          <Text
+            className={`font-semibold`}
+            style={{ color: textColor ? textColor : theme.colors.primary.dark }}
+          >
+            {title}
+          </Text>
         </Pressable>
       )}
     </View>
