@@ -15,7 +15,7 @@ const Button = ({
 }) => {
   return (
     <View
-      className={`rounded-sm ${
+      className={`rounded-sm shadow-sm ${
         border ? "border-[" + border + "]" : "border-accent"
       }`}
       style={[
