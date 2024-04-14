@@ -35,8 +35,6 @@ const Main = ({navigation}) => {
   const logout = useAuthStore((state) => state.logout);
   const employeeId = useAuthStore((state) => state.employeeId);
 
-
-
   const [efforts, setEfforts] = useState([]);
   const [effort, setEffort] = useState({});
 
