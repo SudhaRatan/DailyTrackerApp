@@ -24,6 +24,7 @@ import { API_URL } from "../config";
 import BottomSheet from "../components/BottomSheet";
 import { MaterialIcons } from "@expo/vector-icons";
 import { FlatList } from "react-native-gesture-handler";
+import { useMainStore } from "../stores/mainStore";
 
 const AddEfforts = () => {
   const [ticketId, setTicketId] = useState("");
@@ -35,6 +36,10 @@ const AddEfforts = () => {
 
   const BSUserModules = useRef();
   const BSPMT = useRef();
+  const BSStatus = useRef();
+
+  const statuses = useMainStore((state) => state.statuses);
+  const setStatuses = useMainStore((state) => state.setStatuses);
 
   const { employeeId, userName } = useAuthStore(
     useShallow((state) => ({
@@ -92,6 +97,9 @@ const AddEfforts = () => {
       case "TaskDetails":
         return { ...state, taskDetails: action.payload };
         break;
+      case "Status":
+        return { ...state, StatusId: action.payload };
+        break;
     }
   };
 
@@ -131,20 +139,20 @@ const AddEfforts = () => {
       PagerRef.current.setPage(currentPage - 1);
       setCurrentPage(currentPage - 1);
     }
-  }
+  };
 
   const handleButtonNext = () => {
     if (currentPage < 2) {
       PagerRef.current.setPage(currentPage + 1);
       setCurrentPage(currentPage + 1);
-      switch(currentPage){
+      switch (currentPage) {
         case 0:
           break;
         case 1:
           break;
       }
     }
-  }
+  };
 
   useEffect(() => {
     getModules();
@@ -221,9 +229,30 @@ const AddEfforts = () => {
 
           <Text>{JSON.stringify(effort)}</Text>
         </ScrollView>
-        <View className="justify-center items-center" key={2}>
-          <Text>2</Text>
-        </View>
+        <ScrollView
+          className="p-4"
+          contentContainerStyle={{
+            gap: 20,
+            alignItems: "center",
+          }}
+          key={2}
+        >
+          <View className="w-[100%]">
+            <Text className="font-semibold ">Status</Text>
+            <TouchableOpacity
+              className="p-2 text-slate-500 border-slate-400 focus:border-accent border rounded-sm flex-row items-center justify-between"
+              onPress={() => {
+                BSStatus.current.open();
+              }}
+            >
+              <Text>
+                {statuses.length > 0 &&
+                  statuses.find((i) => i.id === effort.StatusId).name}
+              </Text>
+              <MaterialIcons name="arrow-drop-down" size={24} color="black" />
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
         <View className="justify-center items-center" key={3}>
           <Text>3</Text>
         </View>
@@ -286,6 +315,30 @@ const AddEfforts = () => {
                   onPress={() => {
                     BSPMT.current.close();
                     dispatchEffort({ type: "PMT", payload: item.id });
+                  }}
+                >
+                  <Text>{item.name}</Text>
+                </TouchableOpacity>
+              );
+            }}
+          />
+        </View>
+      </BottomSheet>
+
+      {/* Statuses */}
+      <BottomSheet ref={BSStatus}>
+        <View style={{ maxHeight: height / 2.5 }}>
+          <FlatList
+            data={statuses}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={{ gap: 10 }}
+            renderItem={({ item }) => {
+              return (
+                <TouchableOpacity
+                  className="p-2 bg-tertiary-light rounded-md"
+                  onPress={() => {
+                    BSStatus.current.close();
+                    dispatchEffort({ type: "Status", payload: item.id });
                   }}
                 >
                   <Text>{item.name}</Text>

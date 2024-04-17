@@ -29,6 +29,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { DividerH } from "../components/Divider";
+import { useMainStore } from "../stores/mainStore";
 
 const Main = ({navigation}) => {
   const { height } = Dimensions.get("screen");
@@ -45,7 +46,9 @@ const Main = ({navigation}) => {
   const [projects, setProjects] = useState([]);
   const [modules, setModules] = useState([]);
   const [tempModules, setTempModules] = useState([]);
-  const [statuses, setStatuses] = useState([]);
+  // const [statuses, setStatuses] = useState([]);
+  const statuses = useMainStore((state) => state.statuses)
+  const setStatuses = useMainStore((state) => state.setStatuses)
 
   const [project, setProject] = useState(0);
   const [module, setModule] = useState(0);
