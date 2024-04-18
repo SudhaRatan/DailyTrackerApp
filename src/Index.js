@@ -6,6 +6,7 @@ import { Image, Pressable, Text, View } from "react-native";
 import axios from "axios";
 import { API_URL } from "./config";
 import AddEfforts from "./screens/AddEfforts";
+import { theme } from "./services/theme";
 
 const Stack = createStackNavigator();
 
@@ -31,7 +32,9 @@ const Index = () => {
           options={{
             headerStyle: {
               elevation: 10,
+              backgroundColor: theme.backgroundColor.tertiary.dark,
             },
+            headerTintColor:theme.colors.tertiary.dark,
             headerTitle: "Login to daily tracker",
             headerTitleAlign: "center",
           }}
@@ -41,7 +44,13 @@ const Index = () => {
           <Stack.Screen
             options={{
               headerTitle: "Efforts",
+              headerTitleStyle: {
+                color: theme.colors.primary.dark,
+              },
               headerTitleAlign: "center",
+              headerStyle: {
+                backgroundColor: theme.backgroundColor.tertiary.dark,
+              },
               headerLeft: () => (
                 <View className="justify-center">
                   <Image
@@ -57,7 +66,9 @@ const Index = () => {
                   android_ripple={{ borderless: false }}
                   onPress={logout}
                 >
-                  <Text className="text-accent font-semibold">Logout</Text>
+                  <Text className="text-primary-dark font-semibold">
+                    Logout
+                  </Text>
                 </Pressable>
               ),
             }}
@@ -67,6 +78,11 @@ const Index = () => {
           <Stack.Screen
             options={{
               presentation: "modal",
+              headerStyle: {
+                elevation: 10,
+                backgroundColor: theme.backgroundColor.tertiary.dark,
+              },
+              headerTintColor:theme.colors.tertiary.dark
             }}
             name="AddEffort"
             component={AddEfforts}

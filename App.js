@@ -10,7 +10,7 @@ export default function App() {
     <GestureHandlerRootView>
       <View style={{ width: "100%", height: "100%" }}>
         <NavigationContainer>
-          <StatusBar style="dark" />
+          <StatusBar style="light" />
           <Index />
         </NavigationContainer>
       </View>

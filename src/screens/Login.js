@@ -52,7 +52,7 @@ const Login = () => {
 
   return (
     <>
-      <View className="flex-1 bg-primary-light px-8" style={{ gap: 20 }}>
+      <View className="flex-1 pt-10 bg-primary-light px-8" style={{ gap: 20 }}>
         <View className="items-center">
           <Image className="" source={require("../../assets/logo.png")} />
         </View>
