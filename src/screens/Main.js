@@ -36,12 +36,16 @@ const Main = ({navigation}) => {
   const logout = useAuthStore((state) => state.logout);
   const employeeId = useAuthStore((state) => state.employeeId);
 
-  const [efforts, setEfforts] = useState([]);
+  const efforts = useMainStore((state) => state.efforts)
+  const setEfforts = useMainStore((state) => state.setEfforts)
+  const getEfforts = useMainStore((state) => state.getEfforts)
+  const tempEfforts = useMainStore((state) => state.tempEfforts)
+  const setTempEfforts = useMainStore((state) => state.setTempEfforts)
+  const gettingEfforts = useMainStore((state) => state.gettingEfforts)
+  const setGettingEfforts = useMainStore((state) => state.setGettingEfforts)
+
   const [effort, setEffort] = useState({});
 
-  const [gettingEfforts, setGettingEfforts] = useState(false);
-
-  var [tempEfforts, setTempEfforts] = useState([]);
 
   const [projects, setProjects] = useState([]);
   const [modules, setModules] = useState([]);
@@ -98,19 +102,6 @@ const Main = ({navigation}) => {
       marginVertical: interpolate(filterVal.value, [0, 1], [5, 10]),
     };
   });
-
-  const getEfforts = async () => {
-    try {
-      setGettingEfforts(true);
-      const res = await axios.get(`${API_URL}/api/Efforts`);
-      setTempEfforts([...res.data.efforts]);
-      setEfforts((prev) => [...res.data.efforts]);
-      setGettingEfforts(false);
-    } catch (error) {
-      setGettingEfforts(false);
-      console.log(error);
-    }
-  };
 
   const getProjects = async () => {
     try {
@@ -309,7 +300,7 @@ const Main = ({navigation}) => {
         </ScrollView>
       </Animated.View>
       <View className="rounded-lg border border-tertiary-dark flex-1 overflow-hidden">
-        {efforts.length > 0 ? (
+        {efforts && efforts.length > 0 ? (
           <>
             <View className="flex-row bg-tertiary-light border-b border-b-accent px-2 py-4">
               <Text className="flex-[2.5] font-semibold">Name</Text>

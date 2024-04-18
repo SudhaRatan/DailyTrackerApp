@@ -26,8 +26,9 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { FlatList } from "react-native-gesture-handler";
 import { useMainStore } from "../stores/mainStore";
 import SnackBar from "../components/SnackBar";
+import RNDateTimePicker from "@react-native-community/datetimepicker";
 
-const AddEfforts = () => {
+const AddEfforts = ({ navigation }) => {
   const [ticketId, setTicketId] = useState("");
   const deferredTI = useDeferredValue(ticketId);
 
@@ -54,19 +55,26 @@ const AddEfforts = () => {
     userName: userName,
     moduleId: 0,
     pmt: 0,
+    pmtId: 0,
     ticketId: "",
     taskDetails: "",
     StatusId: 0,
-    totalEstimatedHours: 0,
-    hoursSpentToday: 0,
+    totalEstimatedHours: "",
+    hoursSpentToday: "",
+    totalHoursSpent: "",
     percentageCompleted: 0,
     effortDate: getDate(),
     startDate: "",
     endDate: "",
+    edit: false,
   };
 
   const SnackBarRef = useRef();
-  const [message,setMessage] = useState("")
+  const [message, setMessage] = useState("");
+
+  const [showEffortDate, setShowEffortDate] = useState(false);
+  const [showStartDate, setShowStartDate] = useState(false);
+  const [showEndDate, setShowEndDate] = useState(false);
 
   function getDate(date) {
     var dt;
@@ -93,7 +101,7 @@ const AddEfforts = () => {
         return { ...state, moduleId: action.payload };
         break;
       case "PMT":
-        return { ...state, pmt: action.payload, ticketId: "" };
+        return { ...state, pmtId: action.payload, ticketId: "" };
         break;
       case "Ticket":
         return { ...state, ticketId: action.payload };
@@ -103,6 +111,41 @@ const AddEfforts = () => {
         break;
       case "Status":
         return { ...state, StatusId: action.payload };
+        break;
+      case "PmtId":
+        return { ...state, pmt: action.payload };
+        break;
+      case "TotalEstHours":
+        return { ...state, totalEstimatedHours: action.payload };
+        break;
+      case "TodayHours":
+        return {
+          ...state,
+          hoursSpentToday: action.payload,
+          percentageCompleted: (
+            ((Number(action.payload) + Number(state.totalHoursSpent)) /
+              Number(state.totalEstimatedHours)) *
+            100
+          ).toFixed(2),
+        };
+        break;
+      case "TotalHours":
+        return { ...state, totalHoursSpent: action.payload };
+        break;
+      case "EffortDate":
+        return { ...state, effortDate: action.payload };
+        break;
+      case "StartDate":
+        return {
+          ...state,
+          startDate: action.payload.split("-").reverse().join("-"),
+        };
+        break;
+      case "EndDate":
+        return {
+          ...state,
+          endDate: action.payload.split("-").reverse().join("-"),
+        };
         break;
     }
   };
@@ -138,6 +181,63 @@ const AddEfforts = () => {
     }
   };
 
+  const GetInfo = (pmtId) => {
+    if (pmtId !== 0 && effort.userId) {
+      GetHours(pmtId);
+      GetDates(pmtId);
+    }
+  };
+
+  const GetHours = async (pmtId) => {
+    try {
+      const res = await axios.post(`${API_URL}/api/Efforts/GetHours`, {
+        PMT: pmtId,
+        EmployeeId: effort.userId,
+      });
+      const { totalEstimatedHours, totalHoursSpent } = res.data;
+      if (totalEstimatedHours !== 0 && totalHoursSpent !== 0) {
+        dispatchEffort({
+          type: "TotalEstHours",
+          payload: totalEstimatedHours.toString(),
+        });
+        dispatchEffort({
+          type: "TotalHours",
+          payload: totalHoursSpent.toString(),
+        });
+      } else {
+        dispatchEffort({ type: "TotalEstHours", payload: "" });
+        dispatchEffort({ type: "TotalHours", payload: "" });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const GetDates = async (pmtId) => {
+    try {
+      const res = await axios.post(`${API_URL}/api/Efforts/GetDates`, {
+        PMT: pmtId,
+        EmployeeId: effort.userId,
+      });
+      console.log(res.data);
+      dispatchEffort({
+        type: "StartDate",
+        payload: res.data.startDate
+          .split("T")[0]
+          .split("-")
+          .reverse()
+          .join("-"),
+      });
+      dispatchEffort({
+        type: "EndDate",
+        payload: res.data.endDate.split("T")[0].split("-").reverse().join("-"),
+      });
+      dispatchEffort({ type: "Module", payload: res.data.moduleId });
+    } catch (error) {
+      console.log("Not exists");
+    }
+  };
+
   const handleButtonPrev = () => {
     if (currentPage > 0) {
       PagerRef.current.setPage(currentPage - 1);
@@ -152,13 +252,13 @@ const AddEfforts = () => {
           if (
             effort.userId === "" ||
             effort.moduleId === 0 ||
-            effort.pmt === 0 ||
+            effort.pmtId === 0 ||
             effort.ticketId === "" ||
             effort.taskDetails === ""
           ) {
-            setMessage("Fill all details")
+            setMessage("Fill all details");
             SnackBarRef.current.show();
-          }else{
+          } else {
             PagerRef.current.setPage(currentPage + 1);
             setCurrentPage(currentPage + 1);
           }
@@ -166,6 +266,34 @@ const AddEfforts = () => {
         case 1:
           break;
       }
+    }
+  };
+
+  const getEfforts = useMainStore((state) => state.getEfforts);
+
+  const HandleAdd = async () => {
+    if (
+      effort.StatusId !== 0 &&
+      effort.totalEstimatedHours !== "" &&
+      effort.hoursSpentToday !== "" &&
+      effort.effortDate !== "" &&
+      effort.startDate !== "" &&
+      effort.endDate !== ""
+    ) {
+      try {
+        var tempEffort = effort;
+        tempEffort.totalHoursSpent =
+          Number(effort.totalHoursSpent) + Number(effort.hoursSpentToday);
+        const res = await axios.post(`${API_URL}/api/Efforts`, tempEffort);
+        console.log(res.data);
+        getEfforts();
+        navigation.goBack();
+      } catch (error) {
+        console.log(error.response?.data);
+      }
+    } else {
+      setMessage("Fill all details");
+      SnackBarRef.current.show();
     }
   };
 
@@ -219,7 +347,7 @@ const AddEfforts = () => {
                 BSPMT.current.open();
               }}
             >
-              <Text>{pmt.find((i) => i.id === effort.pmt).name}</Text>
+              <Text>{pmt.find((i) => i.id === effort.pmtId).name}</Text>
               <MaterialIcons name="arrow-drop-down" size={24} color="black" />
             </TouchableOpacity>
           </View>
@@ -240,6 +368,7 @@ const AddEfforts = () => {
             effort={effort}
             dispatchEffort={dispatchEffort}
             deferredTI={deferredTI}
+            GetInfo={GetInfo}
           />
 
           <Text>{JSON.stringify(effort)}</Text>
@@ -267,10 +396,157 @@ const AddEfforts = () => {
               <MaterialIcons name="arrow-drop-down" size={24} color="black" />
             </TouchableOpacity>
           </View>
+          <View className="flex-row w-[100%]" style={{ gap: 10 }}>
+            <View className="flex-1">
+              <Text className="font-semibold">Total estimated hours</Text>
+              <TextInput
+                className="border-slate-400 focus:border-accent border px-2 py-1 rounded-sm"
+                onChangeText={(text) => {
+                  dispatchEffort({ type: "TotalEstHours", payload: text });
+                }}
+                keyboardType="number-pad"
+                value={effort.totalEstimatedHours}
+              />
+            </View>
+
+            <View className="flex-1">
+              <Text className="font-semibold">Hours spent today</Text>
+              <TextInput
+                className="border-slate-400 focus:border-accent border px-2 py-1 rounded-sm"
+                onChangeText={(text) => {
+                  dispatchEffort({ type: "TodayHours", payload: text });
+                }}
+                keyboardType="number-pad"
+                value={effort.hoursSpentToday}
+              />
+            </View>
+          </View>
+
+          <View className="w-[100%]">
+            <Text className="font-semibold ">Effort Date</Text>
+            <TouchableOpacity
+              className="p-2 text-slate-500 border-slate-400 focus:border-accent border rounded-sm flex-row items-center justify-between"
+              onPress={() => {
+                setShowEffortDate(true);
+              }}
+            >
+              <Text>
+                {effort.effortDate.slice(6, 8) +
+                  "-" +
+                  effort.effortDate.slice(4, 6) +
+                  "-" +
+                  effort.effortDate.slice(0, 4)}
+              </Text>
+            </TouchableOpacity>
+            {showEffortDate && (
+              <RNDateTimePicker
+                onChange={(event, date) => {
+                  dispatchEffort({
+                    type: "EffortDate",
+                    payload: date
+                      .toLocaleDateString()
+                      .split("/")
+                      .reverse()
+                      .join(""),
+                  });
+                  setShowEffortDate(false);
+                }}
+                mode="date"
+                value={new Date()}
+              />
+            )}
+          </View>
+
+          <View className="w-[100%] flex-row" style={{ gap: 10 }}>
+            <View className="flex-1">
+              <Text className="font-semibold ">Start Date</Text>
+              <TouchableOpacity
+                className="p-2 text-slate-500 border-slate-400 focus:border-accent border rounded-sm flex-row items-center justify-between"
+                onPress={() => {
+                  setShowStartDate(true);
+                }}
+              >
+                <Text>{effort.startDate.split("-").reverse().join("-")}</Text>
+              </TouchableOpacity>
+              {showStartDate && (
+                <RNDateTimePicker
+                  onChange={(event, date) => {
+                    dispatchEffort({
+                      type: "StartDate",
+                      payload: date.toLocaleDateString().split("/").join("-"),
+                    });
+                    setShowStartDate(false);
+                  }}
+                  mode="date"
+                  value={new Date()}
+                />
+              )}
+            </View>
+            <View className="flex-1">
+              <Text className="font-semibold ">End Date</Text>
+              <TouchableOpacity
+                className="p-2 text-slate-500 border-slate-400 focus:border-accent border rounded-sm flex-row items-center justify-between"
+                onPress={() => {
+                  setShowEndDate(true);
+                }}
+              >
+                <Text>{effort.endDate.split("-").reverse().join("-")}</Text>
+              </TouchableOpacity>
+              {showEndDate && (
+                <RNDateTimePicker
+                  accentColor={theme.colors.accent}
+                  onChange={(event, date) => {
+                    dispatchEffort({
+                      type: "EndDate",
+                      payload: date.toLocaleDateString().split("/").join("-"),
+                    });
+                    setShowEndDate(false);
+                  }}
+                  mode="date"
+                  value={new Date()}
+                />
+              )}
+            </View>
+          </View>
+          <View className="w-full">
+            <View className="w-full flex-row justify-between">
+              <Text className="font-semibold mb-1">Percentage Completed</Text>
+              <Text className="font-semibold">
+                {effort.totalEstimatedHours !== ""
+                  ? (
+                      ((Number(effort.hoursSpentToday) +
+                        Number(effort.totalHoursSpent)) /
+                        Number(effort.totalEstimatedHours)) *
+                      100
+                    ).toFixed(2) + "%"
+                  : "0%"}
+              </Text>
+            </View>
+            <View className="bg-tertiary-light rounded-full w-full p-1">
+              <View
+                className="bg-accent h-2 rounded-full"
+                style={{
+                  width:
+                    effort.totalEstimatedHours !== ""
+                      ? (
+                          ((Number(effort.hoursSpentToday) +
+                            Number(effort.totalHoursSpent)) /
+                            Number(effort.totalEstimatedHours)) *
+                          100
+                        ).toFixed(2) <= 100
+                        ? (
+                            ((Number(effort.hoursSpentToday) +
+                              Number(effort.totalHoursSpent)) /
+                              Number(effort.totalEstimatedHours)) *
+                            100
+                          ).toFixed(2) + "%"
+                        : "100%"
+                      : "0%",
+                }}
+              />
+            </View>
+          </View>
         </ScrollView>
-        <View className="justify-center items-center" key={3}>
-          <Text>3</Text>
-        </View>
       </PagerView>
       <View className="flex-row m-4" style={{ gap: 10 }}>
         <Button
@@ -282,7 +558,7 @@ const AddEfforts = () => {
           onPress={handleButtonPrev}
         />
         {currentPage === 1 ? (
-          <Button className="flex-1" title={"Add"} onPress={() => {}} />
+          <Button className="flex-1" title={"Add"} onPress={HandleAdd} />
         ) : (
           <Button
             className="flex-1"
@@ -376,17 +652,20 @@ const AddEfforts = () => {
 
 export default AddEfforts;
 
-function TicketDetailsResult({ effort, dispatchEffort, deferredTI }) {
+function TicketDetailsResult({ effort, dispatchEffort, deferredTI, GetInfo }) {
   const getTaskDetails = async () => {
     try {
       const res = await axios.post(`${API_URL}/api/Efforts/GetTaskDetails`, {
         TicketID: effort.ticketId,
-        PmtId: effort.pmt,
+        PmtId: effort.pmtId,
         TaskDetails: effort.taskDetails,
       });
+      console.log(res.data);
       if (res.data.taskDetails != undefined) {
         dispatchEffort({ type: "TaskDetails", payload: res.data.taskDetails });
+        dispatchEffort({ type: "PmtId", payload: res.data.id });
         setTDR(true);
+        GetInfo(res.data.id);
       } else {
         dispatchEffort({ type: "TaskDetails", payload: "" });
         setTDR(false);
@@ -399,7 +678,7 @@ function TicketDetailsResult({ effort, dispatchEffort, deferredTI }) {
   const [tdR, setTDR] = useState(false);
 
   useEffect(() => {
-    if (deferredTI != "" && effort.pmt != 0) getTaskDetails();
+    if (deferredTI != "" && effort.pmtId != 0) getTaskDetails();
   }, [deferredTI]);
 
   return (

@@ -17,8 +17,8 @@ const Index = () => {
 
   const logout = async () => {
     try {
-      await axios.get(`${API_URL}/api/AuthApi/Logout`);
       logoutClient();
+      await axios.get(`${API_URL}/api/AuthApi/Logout`);
     } catch (error) {
       console.log(error);
     }

@@ -27,12 +27,13 @@ const Login = () => {
           password,
           keepLoggedIn: true,
         });
-        console.log(result.data)
+        console.log(result)
         login({ ...result.data });
         setLoading(false);
       } catch (error) {
-        setMessage(error.response.data);
+        console.log(error)
         setLoading(false);
+        setMessage(error.response ? error.response?.data : "Network Error!!");
         snackBarRef.current.show();
       }
     } else {
