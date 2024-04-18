@@ -25,6 +25,7 @@ import BottomSheet from "../components/BottomSheet";
 import { MaterialIcons } from "@expo/vector-icons";
 import { FlatList } from "react-native-gesture-handler";
 import { useMainStore } from "../stores/mainStore";
+import SnackBar from "../components/SnackBar";
 
 const AddEfforts = () => {
   const [ticketId, setTicketId] = useState("");
@@ -63,6 +64,9 @@ const AddEfforts = () => {
     startDate: "",
     endDate: "",
   };
+
+  const SnackBarRef = useRef();
+  const [message,setMessage] = useState("")
 
   function getDate(date) {
     var dt;
@@ -142,11 +146,22 @@ const AddEfforts = () => {
   };
 
   const handleButtonNext = () => {
-    if (currentPage < 2) {
-      PagerRef.current.setPage(currentPage + 1);
-      setCurrentPage(currentPage + 1);
+    if (currentPage < 1) {
       switch (currentPage) {
         case 0:
+          if (
+            effort.userId === "" ||
+            effort.moduleId === 0 ||
+            effort.pmt === 0 ||
+            effort.ticketId === "" ||
+            effort.taskDetails === ""
+          ) {
+            setMessage("Fill all details")
+            SnackBarRef.current.show();
+          }else{
+            PagerRef.current.setPage(currentPage + 1);
+            setCurrentPage(currentPage + 1);
+          }
           break;
         case 1:
           break;
@@ -266,7 +281,7 @@ const AddEfforts = () => {
           textColor={theme.colors.tertiary.light}
           onPress={handleButtonPrev}
         />
-        {currentPage === 2 ? (
+        {currentPage === 1 ? (
           <Button className="flex-1" title={"Add"} onPress={() => {}} />
         ) : (
           <Button
@@ -348,6 +363,13 @@ const AddEfforts = () => {
           />
         </View>
       </BottomSheet>
+      <SnackBar
+        ref={SnackBarRef}
+        type={"error"}
+        title={message}
+        actionText="OK"
+        autoDestroy={true}
+      />
     </View>
   );
 };
