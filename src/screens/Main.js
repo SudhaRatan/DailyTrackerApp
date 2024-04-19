@@ -43,6 +43,7 @@ const Main = ({navigation}) => {
   const setTempEfforts = useMainStore((state) => state.setTempEfforts)
   const gettingEfforts = useMainStore((state) => state.gettingEfforts)
   const setGettingEfforts = useMainStore((state) => state.setGettingEfforts)
+  const logoutClient = useAuthStore((state) => state.logout);
 
   const [effort, setEffort] = useState({});
 
@@ -109,6 +110,7 @@ const Main = ({navigation}) => {
       setProjects([...res.data]);
     } catch (error) {
       console.log(error);
+      logoutClient()
     }
   };
 
@@ -118,6 +120,7 @@ const Main = ({navigation}) => {
       setStatuses([...res.data]);
     } catch (error) {
       console.log(error);
+      logoutClient()
     }
   };
 
@@ -128,6 +131,7 @@ const Main = ({navigation}) => {
       setTempModules([...res.data]);
     } catch (error) {
       console.log(error);
+      logoutClient()
     }
   };
 
@@ -303,11 +307,11 @@ const Main = ({navigation}) => {
         {efforts && efforts.length > 0 ? (
           <>
             <View className="flex-row bg-tertiary-light border-b border-b-accent px-2 py-4">
-              <Text className="flex-[2.5] font-semibold">Name</Text>
-              <Text className="flex-1 font-semibold text-center">Module</Text>
-              <Text className="flex-1 font-semibold text-center">
+              <Text className="flex-[2] font-semibold">Name</Text>
+              <Text className="flex-1 font-semibold">
                 Ticket Id
               </Text>
+              <Text className="flex-1 font-semibold text-center">Date</Text>
             </View>
             <FlatList
               data={efforts}
@@ -346,11 +350,11 @@ const Main = ({navigation}) => {
                       })();
                     }}
                   >
-                    <Text className="flex-[2.5]">{item.userName}</Text>
-                    <Text className="flex-1 text-center">
-                      {item.moduleName}
+                    <Text className="flex-[2]">{item.userName}</Text>
+                    <Text className="flex-1">{item.ticketId}</Text>
+                    <Text className="flex-1">
+                      {item.effortDate}
                     </Text>
-                    <Text className="flex-1 text-center">{item.ticketId}</Text>
                   </TouchableOpacity>
                 );
               }}

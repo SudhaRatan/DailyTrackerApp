@@ -27,7 +27,7 @@ const Login = () => {
           password,
           keepLoggedIn: true,
         });
-        console.log(result)
+        // console.log(result)
         login({ ...result.data });
         setLoading(false);
       } catch (error) {
