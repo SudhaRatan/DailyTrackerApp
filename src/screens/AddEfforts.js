@@ -234,7 +234,7 @@ const AddEfforts = ({ navigation }) => {
       });
       dispatchEffort({ type: "Module", payload: res.data.moduleId });
     } catch (error) {
-      console.log("Not exists",error);
+      console.log("Not exists");
     }
   };
 
@@ -312,7 +312,7 @@ const AddEfforts = ({ navigation }) => {
       >
         <ScrollView
           className="p-4"
-          contentContainerStyle={{ alignItems: "center", gap: 20, }}
+          contentContainerStyle={{ alignItems: "center", gap: 20 }}
           key={1}
         >
           <View className="w-[100%]">
